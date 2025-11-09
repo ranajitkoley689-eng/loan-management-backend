@@ -1,19 +1,17 @@
 import express from "express";
-import ToDo from "../models/todo.js"; // make sure the file is lowercase
+import ToDo from "../models/todo.js";
 
 const router = express.Router();
 
-// Get To-Do list for a specific worker
+// Get To-Do list for a worker (all EMIs)
 router.get("/:workerId", async (req, res) => {
   try {
-    const todos = await ToDo.find({ worker: req.params.workerId })
+    const todos = await ToDo.find()
       .populate({ path: "member", select: "name aadhaar" })
       .populate({ path: "loan", select: "emiAmount status" });
-
     res.json(todos);
   } catch (err) {
-    console.error("Error fetching todos:", err);
-    res.status(500).json({ msg: "Server error", error: err.message });
+    res.status(500).json({ msg: "Server error ⚠️", error: err.message });
   }
 });
 
@@ -25,15 +23,9 @@ router.put("/complete/:id", async (req, res) => {
       { status: "completed" },
       { new: true }
     );
-
-    if (!todo) {
-      return res.status(404).json({ msg: "To-Do not found" });
-    }
-
     res.json(todo);
   } catch (err) {
-    console.error("Error updating todo:", err);
-    res.status(500).json({ msg: "Server error", error: err.message });
+    res.status(500).json({ msg: "Server error ⚠️", error: err.message });
   }
 });
 
