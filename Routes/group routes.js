@@ -1,28 +1,40 @@
 import express from "express";
-import Group from "../models/Group.js";
-import Worker from "../models/Worker.js";
+import Group from "../models/group.js";   // ensure lowercase
+import Worker from "../models/worker.js"; // ensure lowercase
 
 const router = express.Router();
 
-// Create new group
+// ---------------- Create New Group ----------------
 router.post("/add", async (req, res) => {
   try {
     const { name, leader, workerId } = req.body;
+
+    // Ensure worker exists
+    const worker = await Worker.findById(workerId);
+    if (!worker) return res.status(404).json({ msg: "Worker not found ❌" });
+
+    // Create group
     const newGroup = await Group.create({ name, leader, worker: workerId });
-    await Worker.findByIdAndUpdate(workerId, { $push: { groups: newGroup._id } });
+
+    // Push group ID to worker's groups array
+    worker.groups.push(newGroup._id);
+    await worker.save();
+
     res.json({ msg: "Group created ✅", group: newGroup });
   } catch (err) {
-    res.status(500).json({ msg: "Server error", error: err.message });
+    console.error("Create group error:", err);
+    res.status(500).json({ msg: "Server error ⚠️", error: err.message });
   }
 });
 
-// Get all groups for a worker
+// ---------------- Get All Groups for a Worker ----------------
 router.get("/:workerId", async (req, res) => {
   try {
-    const groups = await Group.find({ worker: req.params.workerId }).populate("members");
+    const groups = await Group.find({ worker: req.params.workerId }).populate("members", "name aadhaar");
     res.json(groups);
   } catch (err) {
-    res.status(500).json({ msg: "Server error", error: err.message });
+    console.error("Fetch groups error:", err);
+    res.status(500).json({ msg: "Server error ⚠️", error: err.message });
   }
 });
 
