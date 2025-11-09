@@ -1,9 +1,10 @@
+// ---------------- Import Modules ----------------
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
-// Import Routes
+// ---------------- Import Routes ----------------
 import workerAuth from "./routes/workerAuth.js";
 import managerAuth from "./routes/managerAuth.js";
 import groupRoutes from "./routes/groupRoutes.js";
@@ -11,22 +12,28 @@ import memberRoutes from "./routes/memberRoutes.js";
 import loanRoutes from "./routes/loanRoutes.js";
 import todoRoutes from "./routes/todoRoutes.js";
 
+// ---------------- Config ----------------
 dotenv.config();
 const app = express();
 
 // ---------------- Middlewares ----------------
-app.use(cors());              // Enable cross-origin requests
-app.use(express.json());      // Parse JSON bodies
+app.use(cors());
+app.use(express.json());
 
 // ---------------- MongoDB Connection ----------------
-mongoose.connect(process.env.MONGO_URI, {
+const mongoURI = process.env.MONGO_URI;
+
+mongoose.connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
 .then(() => console.log("✅ MongoDB connected successfully"))
-.catch((err) => console.error("❌ MongoDB connection error:", err));
+.catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1); // Stop server if DB connection fails
+});
 
-// ---------------- Routes ----------------
+// ---------------- API Routes ----------------
 app.use("/api/worker", workerAuth);
 app.use("/api/manager", managerAuth);
 app.use("/api/groups", groupRoutes);
@@ -34,7 +41,7 @@ app.use("/api/members", memberRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/todo", todoRoutes);
 
-// ---------------- Test API ----------------
+// ---------------- Test Endpoint ----------------
 app.get("/", (req, res) => res.send("Loan Management API is running ✅"));
 
 // ---------------- 404 Error Handling ----------------
@@ -44,7 +51,7 @@ app.use((req, res, next) => {
 
 // ---------------- Global Error Handler ----------------
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error("Server Error:", err);
     res.status(500).json({ msg: "Server error ⚠️", error: err.message });
 });
 
