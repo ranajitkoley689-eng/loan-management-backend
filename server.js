@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
-// Import routes
+// Import Routes
 import workerAuth from "./routes/workerAuth.js";
 import managerAuth from "./routes/managerAuth.js";
 import groupRoutes from "./routes/groupRoutes.js";
@@ -14,11 +14,11 @@ import todoRoutes from "./routes/todoRoutes.js";
 dotenv.config();
 const app = express();
 
-// Middlewares
-app.use(cors());
-app.use(express.json());
+// ---------------- Middlewares ----------------
+app.use(cors());              // Enable cross-origin requests
+app.use(express.json());      // Parse JSON bodies
 
-// MongoDB connection
+// ---------------- MongoDB Connection ----------------
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -26,7 +26,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log("✅ MongoDB connected successfully"))
 .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// Routes
+// ---------------- Routes ----------------
 app.use("/api/worker", workerAuth);
 app.use("/api/manager", managerAuth);
 app.use("/api/groups", groupRoutes);
@@ -34,9 +34,20 @@ app.use("/api/members", memberRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/todo", todoRoutes);
 
-// Test API
+// ---------------- Test API ----------------
 app.get("/", (req, res) => res.send("Loan Management API is running ✅"));
 
-// Server
+// ---------------- 404 Error Handling ----------------
+app.use((req, res, next) => {
+    res.status(404).json({ msg: "Endpoint not found ❌" });
+});
+
+// ---------------- Global Error Handler ----------------
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ msg: "Server error ⚠️", error: err.message });
+});
+
+// ---------------- Start Server ----------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
