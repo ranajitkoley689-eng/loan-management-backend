@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const todoSchema = new mongoose.Schema({
-  worker: { type: mongoose.Schema.Types.ObjectId, ref: "Worker" },
-  loan: { type: mongoose.Schema.Types.ObjectId, ref: "Loan" },
-  member: { type: mongoose.Schema.Types.ObjectId, ref: "Member" },
+  member: { type: mongoose.Schema.Types.ObjectId, ref: "Member", required: true },
+  loan: { type: mongoose.Schema.Types.ObjectId, ref: "Loan", required: true },
   dueDate: { type: Date, required: true },
-  status: { type: String, default: "pending" } // pending, completed
+  status: { type: String, enum: ["pending", "completed"], default: "pending" }
 }, { timestamps: true });
 
-export default mongoose.model("ToDo", todoSchema);
+const ToDo = mongoose.model("ToDo", todoSchema);
+export default ToDo;
